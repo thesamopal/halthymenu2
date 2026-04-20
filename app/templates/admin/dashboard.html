@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Администратор · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="wrap">
+    <span class="eyebrow">Панель администратора</span>
+    <h1 style="margin-top: 8px">Управление планером</h1>
+
+    <div class="grid grid--3 mb-md">
+        <a href="/admin/users" class="card" style="text-decoration: none; color: inherit">
+            <span class="card__label">Пользователи</span>
+            <h3 style="margin-top: 8px">{{ users_count }}</h3>
+        </a>
+        <a href="/admin/recipes" class="card" style="text-decoration: none; color: inherit">
+            <span class="card__label">Рецепты</span>
+            <h3 style="margin-top: 8px">{{ recipes_count }}</h3>
+        </a>
+        <a href="/admin/ingredients" class="card" style="text-decoration: none; color: inherit">
+            <span class="card__label">Ингредиенты</span>
+            <h3 style="margin-top: 8px">{{ ingredients_count }}</h3>
+        </a>
+    </div>
+
+    <h3 class="mb-md">Последние события</h3>
+    <table class="table">
+        <thead>
+            <tr><th>Время</th><th>Пользователь</th><th>Действие</th><th>IP</th><th>Детали</th></tr>
+        </thead>
+        <tbody>
+            {% for log in recent_logs %}
+                <tr>
+                    <td>{{ log.created_at.strftime('%d.%m %H:%M') }}</td>
+                    <td>{{ log.user_id or '—' }}</td>
+                    <td><code>{{ log.action }}</code></td>
+                    <td>{{ log.ip_address or '—' }}</td>
+                    <td class="text-sm text-muted">{{ log.details or '' }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

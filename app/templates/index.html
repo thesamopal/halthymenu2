@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+    <div class="hero__ornament">❀</div>
+    <span class="eyebrow">Мятный планер</span>
+    <h1><em>Уютное</em> меню на каждый месяц</h1>
+    <p class="hero__sub">
+        Случайный планер по настроению. Считает БЖУ, составляет список покупок, запоминает цены —
+        чтобы следующий месяц был точнее, а кухня была вкуснее.
+    </p>
+    {% if not current_user %}
+        <div class="flex gap-sm" style="justify-content: center">
+            <a href="/auth/register" class="btn btn--primary">Начать бесплатно</a>
+            <a href="/auth/login" class="btn btn--secondary">У меня уже есть аккаунт</a>
+        </div>
+    {% else %}
+        <a href="/planner" class="btn btn--primary">К моему планеру</a>
+    {% endif %}
+</section>
+
+<div class="wrap">
+    <div class="grid grid--3 mt-md">
+        <div class="card">
+            <span class="card__label">Рандом по настроению</span>
+            <h3>Случай с заботой</h3>
+            <p class="text-muted mt-md">Отмечаешь настроение — алгоритм подберёт блюда: уютные, бодрящие, лёгкие или сытные.</p>
+        </div>
+        <div class="card">
+            <span class="card__label">БЖУ + калории</span>
+            <h3>Всё в пределах нормы</h3>
+            <p class="text-muted mt-md">Задаёшь калорийность в сутки и целевые БЖУ — планер держит рамки, но разнообразит выбор.</p>
+        </div>
+        <div class="card">
+            <span class="card__label">Покупки и цены</span>
+            <h3>Бюджет под контролем</h3>
+            <p class="text-muted mt-md">Автосписок покупок с галочками. В конце месяца вносишь цены — дальше прогнозы на следующий.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

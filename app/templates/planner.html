@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Планировщик · {{ month_name }} {{ year }}{% endblock %}
+{% block content %}
+<div class="wrap">
+    <div class="flex-between mb-md" style="flex-wrap: wrap">
+        <div>
+            <span class="eyebrow">Планировщик</span>
+            <h1 style="margin-top: 8px">{{ month_name }} {{ year }}</h1>
+        </div>
+        <form method="get" action="/planner" class="flex gap-sm" style="flex-wrap: wrap">
+            <select class="select" name="month" onchange="this.form.submit()">
+                {% for m_num, m_name in month_options %}
+                    <option value="{{ m_num }}" {% if m_num == month %}selected{% endif %}>{{ m_name }}</option>
+                {% endfor %}
+            </select>
+            <select class="select" name="year" onchange="this.form.submit()">
+                {% for y in year_options %}
+                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <!-- Настройки и генерация -->
+    <div class="card card--accent mb-md" x-data="{ open: {{ 'false' if plan else 'true' }} }">
+        <div class="flex-between">
+            <div>
+                <span class="card__label">Настройки месяца</span>
+                <h3 style="margin-top: 8px">
+                    {% if plan %}
+                        План составлен
+                    {% else %}
+                        Составить план на месяц
+                    {% endif %}
+                </h3>
+            </div>
+            <button type="button" class="btn btn--ghost" @click="open = !open">
+                <span x-text="open ? 'Свернуть' : 'Настроить'"></span>
+            </button>
+        </div>
+
+        <div x-show="open" x-transition class="mt-md">
+            <form method="post" action="/planner/generate" class="stack-md">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="year" value="{{ year }}">
+                <input type="hidden" name="month" value="{{ month }}">
+
+                <div class="grid grid--3">
+                    <div class="field">
+                        <label class="field__label">Калории в сутки</label>
+                        <input class="input" type="number" name="daily_calories" min="800" max="6000"
+                               value="{{ plan.daily_calories if plan else current_user.daily_calories }}" required>
+                    </div>
+                    <div class="field">
+                        <label class="field__label">Десертов в неделю</label>
+                        <input class="input" type="number" name="desserts_per_week" min="0" max="14"
+                               value="{{ plan.desserts_per_week if plan else 2 }}">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="field__label">Порций на каждый приём пищи (в день)</label>
+                    <div class="grid grid--3" style="gap: 12px">
+                        <div>
+                            <label class="field__hint">Завтрак</label>
+                            <input class="input" type="number" name="servings_breakfast" min="0" max="20"
+                                   value="{{ plan.servings_breakfast if plan else 1 }}">
+                        </div>
+                        <div>
+                            <label class="field__hint">Обед</label>
+                            <input class="input" type="number" name="servings_lunch" min="0" max="20"
+                                   value="{{ plan.servings_lunch if plan else 1 }}">
+                        </div>
+                        <div>
+                            <label class="field__hint">Полдник</label>
+                            <input class="input" type="number" name="servings_snack" min="0" max="20"
+                                   value="{{ plan.servings_snack if plan else 1 }}">
+                        </div>
+                        <div>
+                            <label class="field__hint">Ужин</label>
+                            <input class="input" type="number" name="servings_dinner" min="0" max="20"
+                                   value="{{ plan.servings_dinner if plan else 1 }}">
+                        </div>
+                        <div>
+                            <label class="field__hint">Поздник</label>
+                            <input class="input" type="number" name="servings_late_snack" min="0" max="20"
+                                   value="{{ plan.servings_late_snack if plan else 0 }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="field__label">Настроение (можно несколько)</label>
+                    <div class="flex gap-sm" style="flex-wrap: wrap">
+                        {% for mood_key, mood_name in mood_options %}
+                            <label class="mood" style="cursor: pointer">
+                                <input type="checkbox" name="moods" value="{{ mood_key }}" style="margin-right: 6px">
+                                {{ mood_name }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="flex gap-sm">
+                    <button type="submit" class="btn btn--primary">
+                        {% if plan %}Перегенерировать план{% else %}Создать план{% endif %}
+                    </button>
+                </div>
+            </form>
+
+            {% if plan %}
+            <form method="post" action="/planner/delete" style="margin-top: 12px">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="year" value="{{ year }}">
+                <input type="hidden" name="month" value="{{ month }}">
+                <button type="submit" class="btn btn--ghost btn--small"
+                        onclick="return confirm('Удалить план на этот месяц? Список покупок также будет удалён.')">
+                    Удалить план
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if plan %}
+        <!-- Итоги по БЖУ -->
+        <div class="grid grid--3 mb-md">
+            <div class="card">
+                <span class="card__label">Калории за месяц</span>
+                <h3 style="margin-top: 8px">{{ total_stats.calories | int }} ккал</h3>
+                <p class="text-muted text-sm">Цель: {{ user_targets.calories | int }} ккал</p>
+            </div>
+            <div class="card">
+                <span class="card__label">Белки</span>
+                <h3 style="margin-top: 8px">{{ total_stats.protein | int }} г</h3>
+                <p class="text-muted text-sm">Цель: {{ user_targets.protein | int }} г</p>
+            </div>
+            <div class="card">
+                <span class="card__label">Жиры / Углеводы</span>
+                <h3 style="margin-top: 8px">{{ total_stats.fat | int }} / {{ total_stats.carbs | int }} г</h3>
+                <p class="text-muted text-sm">Цель: {{ user_targets.fat | int }} / {{ user_targets.carbs | int }} г</p>
+            </div>
+        </div>
+
+        <!-- Календарь -->
+        <h3 class="mb-md">Календарь меню</h3>
+        <div class="calendar">
+            {% set weekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] %}
+            {% for w in weekdays %}
+                <div class="text-muted text-sm text-center" style="padding: 6px">{{ w }}</div>
+            {% endfor %}
+            {% for _ in range(first_weekday) %}
+                <div class="calendar__day calendar__day--empty"></div>
+            {% endfor %}
+            {% for day in days_grid %}
+                <div class="calendar__day fade-in">
+                    <div class="calendar__date">{{ day.date.day }}</div>
+                    {% for meal in day.meals %}
+                        <span class="calendar__meal" title="{{ meal.name }} · {{ meal.calories }} ккал">
+                            {{ meal.name }}
+                        </span>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card text-center" style="padding: 60px 20px">
+            <p class="text-muted">
+                На {{ month_name }} {{ year }} плана ещё нет. Настрой параметры выше и нажми «Создать план».
+            </p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

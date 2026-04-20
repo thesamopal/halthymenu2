@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Покупки · {{ month_name }} {{ year }}{% endblock %}
+{% block content %}
+<div class="wrap">
+    <div class="flex-between mb-md" style="flex-wrap: wrap">
+        <div>
+            <span class="eyebrow">Список покупок</span>
+            <h1 style="margin-top: 8px">{{ month_name }} {{ year }}</h1>
+        </div>
+        {% if plan %}
+        <div class="flex gap-sm">
+            <a href="/shopping?year={{ year }}&month={{ month }}&view=week" class="btn {% if view == 'week' %}btn--primary{% else %}btn--secondary{% endif %}">По неделям</a>
+            <a href="/shopping?year={{ year }}&month={{ month }}&view=month" class="btn {% if view == 'month' %}btn--primary{% else %}btn--secondary{% endif %}">На весь месяц</a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if not plan %}
+        <div class="card text-center" style="padding: 60px 20px">
+            <p class="text-muted">
+                На {{ month_name }} {{ year }} плана ещё нет, поэтому список покупок пуст.
+            </p>
+            <a href="/planner?year={{ year }}&month={{ month }}" class="btn btn--primary mt-md">Составить план</a>
+        </div>
+    {% else %}
+        <!-- Статистика -->
+        <div class="grid grid--3 mb-md">
+            <div class="card">
+                <span class="card__label">Прогресс</span>
+                <h3 style="margin-top: 8px">{{ stats.purchased }} / {{ stats.total_items }}</h3>
+                <div style="background: var(--pink-100); border-radius: 100px; height: 8px; margin-top: 10px; overflow: hidden">
+                    <div style="background: var(--pink-500); height: 100%; width: {{ stats.progress_pct }}%; transition: width .4s ease"></div>
+                </div>
+            </div>
+            <div class="card">
+                <span class="card__label">Потрачено</span>
+                <h3 style="margin-top: 8px">{{ stats.spent }} ₽</h3>
+                <p class="text-muted text-sm">с начала месяца</p>
+            </div>
+            <div class="card">
+                <span class="card__label">Недель в месяце</span>
+                <h3 style="margin-top: 8px">{{ weeks_available | length }}</h3>
+                <p class="text-muted text-sm">Покупки разбиты по неделям</p>
+            </div>
+        </div>
+
+        {% if view == 'month' %}
+            <!-- Агрегированный месяц -->
+            <h3 class="mb-md">Всё на месяц</h3>
+            <div x-data="shoppingList()" class="stack-sm">
+                {% for row in monthly_items %}
+                    {% include "_shopping_row.html" %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- По неделям -->
+            {% for w in weeks_available %}
+                <div class="mb-md">
+                    <h3 class="mb-md">Неделя {{ w }}</h3>
+                    <div x-data="shoppingList()" class="stack-sm">
+                        {% for row in grouped_by_week[w] %}
+                            {% include "_shopping_row.html" %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-muted">Нет позиций в списке.</p>
+            {% endfor %}
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function shoppingList() {
+    return {
+        async togglePurchased(id, event) {
+            const formData = new FormData();
+            const csrf = document.querySelector('meta[name="csrf-token"]');
+            try {
+                const resp = await fetch(`/shopping/toggle/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-Token': '{{ csrf_token }}',
+                    },
+                    credentials: 'same-origin',
+                    body: formData,
+                });
+                if (!resp.ok) { event.target.checked = !event.target.checked; return; }
+                const data = await resp.json();
+                // Обновляем визуальное состояние строки
+                const row = event.target.closest('.check');
+                if (row) {
+                    row.classList.toggle('check--done', data.is_purchased);
+                }
+            } catch (e) {
+                event.target.checked = !event.target.checked;
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

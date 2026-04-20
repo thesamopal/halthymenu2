@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Ингредиенты · Админ{% endblock %}
+{% block content %}
+<div class="wrap">
+    <div class="flex-between mb-md">
+        <div>
+            <span class="eyebrow">Администратор</span>
+            <h1 style="margin-top: 8px">Ингредиенты ({{ ingredients | length }})</h1>
+        </div>
+        <a href="/admin" class="btn btn--secondary">← Админ-панель</a>
+    </div>
+
+    <div class="card card--accent mb-md" x-data="{ open: false }">
+        <div class="flex-between">
+            <h3>Добавить ингредиент</h3>
+            <button type="button" class="btn btn--secondary btn--small" @click="open = !open">
+                <span x-text="open ? 'Свернуть' : 'Открыть форму'"></span>
+            </button>
+        </div>
+        <form method="post" action="/admin/ingredients/add" class="stack-md mt-md" x-show="open" x-transition>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="grid grid--2">
+                <div class="field">
+                    <label class="field__label">Название</label>
+                    <input class="input" type="text" name="name" required minlength="2">
+                </div>
+                <div class="field">
+                    <label class="field__label">Единица</label>
+                    <select class="select" name="unit">
+                        <option value="г">г</option>
+                        <option value="мл">мл</option>
+                        <option value="шт">шт</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid--3">
+                <div class="field">
+                    <label class="field__label">Ккал на 100</label>
+                    <input class="input" type="number" step="0.1" name="calories_per_100" value="0" required>
+                </div>
+                <div class="field">
+                    <label class="field__label">Белки на 100</label>
+                    <input class="input" type="number" step="0.1" name="protein_per_100" value="0" required>
+                </div>
+                <div class="field">
+                    <label class="field__label">Жиры на 100</label>
+                    <input class="input" type="number" step="0.1" name="fat_per_100" value="0" required>
+                </div>
+                <div class="field">
+                    <label class="field__label">Углеводы на 100</label>
+                    <input class="input" type="number" step="0.1" name="carbs_per_100" value="0" required>
+                </div>
+                <div class="field">
+                    <label class="field__label">Категория</label>
+                    <input class="input" type="text" name="category" placeholder="мясо, овощи ...">
+                </div>
+            </div>
+            <button type="submit" class="btn btn--primary">Добавить</button>
+        </form>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr><th>Название</th><th>Ед.</th><th>Ккал/100</th><th>Б</th><th>Ж</th><th>У</th><th>Категория</th></tr>
+        </thead>
+        <tbody>
+            {% for i in ingredients %}
+                <tr>
+                    <td><strong>{{ i.name }}</strong></td>
+                    <td>{{ i.unit }}</td>
+                    <td>{{ i.calories_per_100 }}</td>
+                    <td>{{ i.protein_per_100 }}</td>
+                    <td>{{ i.fat_per_100 }}</td>
+                    <td>{{ i.carbs_per_100 }}</td>
+                    <td class="text-muted text-sm">{{ i.category or '' }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Исключения продуктов · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="wrap wrap--narrow">
+    <span class="eyebrow">Мои предпочтения</span>
+    <h1 style="margin-top: 8px">Исключения продуктов</h1>
+    <p class="text-muted mb-md">
+        Добавь продукты, которые не переносишь или не любишь — планер никогда не предложит блюдо с ними.
+    </p>
+
+    <div class="card mb-md">
+        <h3 class="mb-md">Добавить исключение</h3>
+        <form method="post" action="/exclusions/add" class="stack-md">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="field">
+                <label class="field__label">Ингредиент</label>
+                <select class="select" name="ingredient_id" required>
+                    <option value="">Выбери продукт</option>
+                    {% for ing in available_ingredients %}
+                        <option value="{{ ing.id }}">{{ ing.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label class="field__label">Причина (необязательно)</label>
+                <input class="input" type="text" name="reason" maxlength="200"
+                       placeholder="Например: аллергия, не люблю, непереносимость">
+            </div>
+            <button type="submit" class="btn btn--primary">Добавить</button>
+        </form>
+    </div>
+
+    <h3 class="mb-md">Список исключений ({{ exclusions | length }})</h3>
+    {% if exclusions %}
+        <div class="stack-sm">
+            {% for e in exclusions %}
+                <div class="card flex-between fade-in" style="padding: 16px 20px">
+                    <div>
+                        <strong>{{ e.ingredient.name }}</strong>
+                        {% if e.reason %}
+                            <span class="text-muted text-sm"> — {{ e.reason }}</span>
+                        {% endif %}
+                    </div>
+                    <form method="post" action="/exclusions/{{ e.id }}/delete">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="btn btn--ghost btn--small"
+                                onclick="return confirm('Убрать из исключений?')">
+                            Убрать
+                        </button>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card text-center" style="padding: 40px 20px">
+            <p class="text-muted">Пока исключений нет — планер использует все доступные продукты.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

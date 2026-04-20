@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Вход · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="wrap wrap--narrow" style="padding-top: 60px">
+    <div class="card card--accent">
+        <span class="eyebrow">Добро пожаловать</span>
+        <h2 class="mt-0" style="margin-top: 8px; margin-bottom: 24px">Войти в планер</h2>
+
+        {% if error %}
+            <div class="flash flash--error">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="/auth/login" class="stack-md">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="field">
+                <label class="field__label" for="email">Email</label>
+                <input class="input" type="email" name="email" id="email" required autocomplete="email" value="{{ email or '' }}">
+            </div>
+            <div class="field">
+                <label class="field__label" for="password">Пароль</label>
+                <input class="input" type="password" name="password" id="password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn--primary btn--block">Войти</button>
+        </form>
+
+        <p class="text-center text-muted text-sm mt-md">
+            Нет аккаунта? <a href="/auth/register">Зарегистрироваться</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

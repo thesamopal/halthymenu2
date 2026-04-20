@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: pastel-planner
+    runtime: python
+    region: frankfurt
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt && python -m scripts.seed
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips '*'
+    healthCheckPath: /healthz
+    envVars:
+      - key: DEBUG
+        value: "false"
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: DATABASE_URL
+        value: "sqlite:////var/data/planner.db"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CSRF_SECRET_KEY
+        generateValue: true
+      - key: INITIAL_ADMIN_EMAIL
+        sync: false   # задаётся вручную в дашборде Render
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+    disk:
+      name: planner-data
+      mountPath: /var/data
+      sizeGB: 1

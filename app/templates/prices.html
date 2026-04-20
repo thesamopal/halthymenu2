@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Цены и аналитика · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="wrap">
+    <span class="eyebrow">Бюджет и прогнозы</span>
+    <h1 style="margin-top: 8px">Цены и аналитика</h1>
+    <p class="text-muted mb-md">
+        Цены вносятся по факту покупки в списке закупок. Они сохраняются в истории и используются для прогнозов.
+    </p>
+
+    <!-- Прогноз -->
+    {% if forecast %}
+        <div class="card card--accent mb-md">
+            <span class="card__label">Прогноз</span>
+            <h2 style="margin-top: 8px">{{ forecast.month_name }} {{ forecast.plan.year }} — примерно {{ forecast.total }} ₽</h2>
+            <p class="text-muted mt-md">
+                Оценка на основе средних цен по истории твоих покупок.
+                Позиций в прогнозе: {{ forecast.all_items_count }}.
+            </p>
+            {% if forecast.top_items %}
+                <h3 class="mt-md mb-md">Самые дорогие позиции</h3>
+                <table class="table">
+                    <thead><tr><th>Продукт</th><th>Количество</th><th style="text-align: right">Оценка</th></tr></thead>
+                    <tbody>
+                        {% for it in forecast.top_items %}
+                            <tr>
+                                <td>{{ it.name }}</td>
+                                <td>{{ it.amount }} {{ it.unit }}</td>
+                                <td style="text-align: right"><strong>{{ it.estimated }} ₽</strong></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- История по месяцам -->
+    {% if month_totals %}
+        <h3 class="mb-md">История расходов</h3>
+        <div class="grid grid--3 mb-md">
+            {% for mt in month_totals %}
+                <div class="card">
+                    <span class="card__label">{{ mt.month_name }} {{ mt.year }}</span>
+                    <h3 style="margin-top: 8px">{{ mt.total }} ₽</h3>
+                    <p class="text-muted text-sm">{{ mt.items }} позиций куплено</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Средние цены -->
+    {% if price_rows %}
+        <h3 class="mb-md">Средние цены по ингредиентам</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Ингредиент</th>
+                    <th>Цена за 100 {{ price_rows[0].ingredient.unit if price_rows else 'г' }}</th>
+                    <th>Покупок</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in price_rows %}
+                    <tr>
+                        <td>{{ row.ingredient.name }}</td>
+                        <td>{{ row.avg_price_per_100 }} ₽ / 100 {{ row.ingredient.unit }}</td>
+                        <td>{{ row.n_purchases }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="card text-center" style="padding: 40px 20px">
+            <p class="text-muted">
+                Когда ты отметишь покупки и впишешь цены, здесь появится аналитика и прогнозы.
+            </p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

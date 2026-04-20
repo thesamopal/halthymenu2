@@ -1,0 +1,29 @@
+<div class="check {% if row.is_purchased %}check--done{% endif %}" x-data="{ open: false }">
+    <input type="checkbox"
+           class="check__input"
+           {% if row.is_purchased %}checked{% endif %}
+           @change="togglePurchased({{ row.id }}, $event)">
+    <span class="check__label">
+        <strong>{{ row.ingredient.name }}</strong>
+        <span class="check__amount">{{ row.amount }} {{ row.ingredient.unit }}</span>
+    </span>
+    <div style="display: flex; align-items: center; gap: 8px;">
+        {% if row.actual_price %}
+            <span class="text-sm" style="color: var(--pink-600); font-weight: 600">{{ row.actual_price }} ₽</span>
+        {% endif %}
+        <button type="button" class="btn btn--ghost btn--small" @click="open = !open">
+            <span x-text="open ? 'Скрыть' : (({{ row.actual_price or 0 }} > 0) ? 'Изменить' : 'Цена')"></span>
+        </button>
+    </div>
+    <div x-show="open" x-transition @click.stop style="flex-basis: 100%; margin-top: 10px">
+        <form method="post" action="/shopping/price/{{ row.id }}" class="flex gap-sm" style="align-items: flex-end">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="field" style="flex: 1; margin-bottom: 0">
+                <label class="field__hint">Фактическая цена за {{ row.amount }} {{ row.ingredient.unit }}</label>
+                <input class="input" type="number" name="actual_price" step="0.01" min="0"
+                       value="{{ row.actual_price or '' }}" placeholder="0.00" required>
+            </div>
+            <button type="submit" class="btn btn--primary btn--small">Сохранить</button>
+        </form>
+    </div>
+</div>
