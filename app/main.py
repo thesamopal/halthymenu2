@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from fastapi_csrf_protect.exceptions import CsrfProtectError
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.config import settings
 from app.database import Base, engine, get_db
@@ -44,6 +45,11 @@ app = FastAPI(
 
 # Middleware: заголовки безопасности, CSP, HSTS
 setup_security(app)
+
+# ProxyHeadersMiddleware — Render стоит за прокси (Cloudflare).
+# Этот middleware заставляет Starlette доверять заголовкам X-Forwarded-For и X-Forwarded-Proto,
+# чтобы request.url.scheme был "https", а не "http". Без него Secure cookies не работают.
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 # Rate limiting
 app.state.limiter = limiter
