@@ -34,10 +34,13 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
-        # CSP: разрешаем только свои скрипты + Alpine.js с cdnjs
+        # CSP: разрешаем свои скрипты + Alpine.js с jsdelivr.
+        # 'unsafe-eval' нужен Alpine.js для выполнения директив x-data/x-show/@click;
+        # 'unsafe-inline' нужен для <script> блоков в шаблонах (shopping.html, admin/recipes.html).
+        # XSS через user-input всё равно блокируется Jinja2 autoescape на уровне шаблонов.
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
+            "script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval'; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com data:; "
             "img-src 'self' data:; "
