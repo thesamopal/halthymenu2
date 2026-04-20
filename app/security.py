@@ -11,8 +11,14 @@ from app.config import settings
 
 class CsrfSettings(BaseSettings):
     secret_key: str = settings.CSRF_SECRET_KEY
-    cookie_samesite: str = "strict"
+    # lax вместо strict — strict блокирует cookie при переходах по внешним ссылкам
+    # и в некоторых сценариях редиректов. Для CSRF защиты lax достаточно.
+    cookie_samesite: str = "lax"
     cookie_secure: bool = settings.COOKIE_SECURE
+    # Важно: указываем, что токен приходит в теле формы (а не в заголовке),
+    # и имя поля формы совпадает с тем, что в HTML-шаблонах (`csrf_token`).
+    token_location: str = "body"
+    token_key: str = "csrf_token"
 
 
 @CsrfProtect.load_config
