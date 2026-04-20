@@ -62,8 +62,16 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 
 @app.exception_handler(CsrfProtectError)
 async def csrf_error_handler(request: Request, exc: CsrfProtectError):
-    # При устаревшем CSRF-токене отправляем на главную
-    return RedirectResponse(url="/", status_code=302)
+    """При ошибке CSRF — показываем детали, чтобы было видно причину в браузере."""
+    import logging
+    logging.error(f"CSRF error on {request.method} {request.url.path}: {exc.message}")
+    return HTMLResponse(
+        f"<h1>CSRF ошибка (403)</h1>"
+        f"<p><b>Путь:</b> {request.method} {request.url.path}</p>"
+        f"<p><b>Причина:</b> {exc.message}</p>"
+        f"<p><a href='/'>На главную</a></p>",
+        status_code=403,
+    )
 
 
 @app.exception_handler(404)
